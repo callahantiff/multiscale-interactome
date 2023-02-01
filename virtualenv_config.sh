@@ -1,1 +1,0 @@
-virtualenv venv && source venv/bin/activate && pyhton -m pip install -r requirements.txt
