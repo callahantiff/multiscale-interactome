@@ -1,0 +1,25 @@
+#### Distribution/Packaging/Environments
+\.DS_Store
+.idea/
+.ipynb_checkpoints/*
+notebooks/.ipynb_checkpoints/*
+__pycache__
+__pycache__/
+**/__pycache__/*
+
+#### Testing
+.single_run
+.coverage*
+coverage.xml
+.notipy.json
+/tests/archive/
+
+#### Logs
+logs/*.log
+**/logs/*.log
+
+#### Scripts
+scratch*.py
+
+#### Data and Directories
+/resources/data/*
