@@ -23,6 +23,10 @@ msi = MSI(drug2protein_directed=False, indication2protein_directed=False, protei
           biological_function2biological_function_file_path=biological_function2biological_function_file_path)
 msi.load()
 
+# save network and node information dict
+msi.save_graph('resources/data/mis_graph_v1.pkl')
+msi.save_node2idx('resources/data/mis_graph_v1_node2idx.pkl')
+
 
 # derive diffusion profiles
 dp = DiffusionProfiles(alpha=0.8595436247434408, max_iter=1000, tol=1e-06,
