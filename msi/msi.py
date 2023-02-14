@@ -18,7 +18,7 @@ class MSI:
         # parameters
         self.cs_adj_dict, self.drug_or_indication2proteins, self.node2type, self.type2nodes = None, None, None, None
         self.node2name, self.name2node, self.nodelist, self.node2idx, self.idx2node = None, None, None, None, None
-        self.indications_in_graph, self.drugs_in_graph, self.up_bp, self.down_bp = None, None, None, None
+        self.indications_in_graph, self.drugs_in_graph = None, None
         self.graph = nx.Graph()
         self.components = dict()
         self.drug_protein = "drug-protein"
@@ -30,6 +30,8 @@ class MSI:
         self.indication = "indication"
         self.protein = "protein"
         self.biological_function = "biological_function"
+        self.up_bp = "up_biological_function"
+        self.down_bp = "down_biological_function"
         self.weight = "weight"
         self.nodes = [self.drug, self.indication, self.protein, self.biological_function]
         self.edges = [self.drug_protein, self.indication_protein, self.protein_protein,
@@ -197,6 +199,14 @@ class MSI:
             self.cs_adj_dict[node][successor_type] = [successor]
 
     def create_class_specific_adjacency_dictionary(self):
+        """Function creates the class-specific adjacency matrix where for all nodes, connections are established
+        between the node and all of it's successors in the graph. For biological functions, an additional step is
+        added where each node's up and down successors and predecessors are added to the graph with the successor
+        type None.
+
+        The function returns a nested dictionary where the first key is the node id, the second key is the successor
+        type, and the value is a list of node ids.
+        """
         self.cs_adj_dict = {node: {} for node in self.graph.nodes()}
         for node in self.graph.nodes():
             node_type = self.node2type[node]
@@ -220,10 +230,26 @@ class MSI:
                 else:
                     self.add_to_cs_adj_dict(node, successor_type, successor)
 
-    def weight_graph(self, weights):
+    def weight_graph(self, weights: dict) -> None:
+        """Function creates a weighted adjacency matrix for all nodes in the msi graph object. The weight for each
+        node is derived by dividing the input weight value for a specific node type by the count of successor nodes
+        of that node type. This information is also added to the msi Networkx graph object directly with the
+        attribute label "weight".
+
+        examples:
+            - adj matrix: {node id: {node_type: [nodei, nodei1, ..., nodein}}
+            - Networkx graph: [(i, j), {'weight': float}), ...]
+
+        :param weights: A dictionary keyed by node type and containing probabilities as values.
+        :return:
+            None.
+        """
+        print('---> Building Adjacency Matrix for all Nodes in Graph')
         self.create_class_specific_adjacency_dictionary()
+
+        print('---> Weighting Edges')
         for from_node, adj_dict in self.cs_adj_dict.items():
             for node_type, to_nodes in adj_dict.items():
-                num_typed_nodes = len(to_nodes)
+                num_typed_nodes = len(to_nodes)  # number of successors for a specific node type
                 for to_node in to_nodes:
                     self.graph[from_node][to_node][self.weight] = weights[node_type] / float(num_typed_nodes)
