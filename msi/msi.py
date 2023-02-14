@@ -109,11 +109,11 @@ class MSI:
         if (self.protein in self.nodes) and (self.protein_protein in self.edges):
             self.components[p2p] = ProteinToProtein(self.protein2protein_directed, self.protein2protein_file_path)
             self.add_edges(self.components[p2p].edge_list, self.protein, self.protein)
-        print('---> Processing Protein-Protein Data')
+        print('---> Processing Protein-Biological Process Data')
         if (self.biological_function in self.nodes) and (self.protein_biological_function in self.edges):
             self.components[p2b] = ProteinToBiologicalFunction(
                 self.protein2biological_function_directed, self.protein2biological_function_file_path)
-            self.add_edges(self.components[p2p].edge_list, self.protein, self.biological_function)
+            self.add_edges(self.components[p2b].edge_list, self.protein, self.biological_function)
         print('---> Processing Biological Process-Biological Process Data')
         if (self.biological_function in self.nodes) and (self.biological_function_biological_function in self.edges):
             self.components[b2b] = BiologicalFunctionToBiologicalFunction(
