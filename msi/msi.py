@@ -56,7 +56,7 @@ class MSI:
             self.graph.nodes[to_node]["type"] = to_node_type
 
     @staticmethod
-    def merge_one_to_one_dicts(dict_list):
+    def merge_one_to_one_dicts(dict_list: dict) -> dict:
         out_dict = dict()
         for dict_ in dict_list:
             for k, v in dict_.items():
@@ -66,7 +66,7 @@ class MSI:
                     out_dict[k] = v
         return out_dict
 
-    def load_node2type(self):
+    def load_node2type(self) -> None:
         # merge the node2type of each component (these are 1:1 dictionaries)
         node2type__list = []
         for node2node__name, node2node__obj in self.components.items():
@@ -74,7 +74,7 @@ class MSI:
         node2type = self.merge_one_to_one_dicts(node2type__list)
         self.node2type = node2type
 
-    def load_type2nodes(self):
+    def load_type2nodes(self) -> None:
         type2nodes = {}
         for node, type_ in self.node2type.items():
             if type_ in type2nodes:
@@ -83,18 +83,18 @@ class MSI:
                 type2nodes[type_] = {node}
         self.type2nodes = type2nodes
 
-    def load_node2name(self):
+    def load_node2name(self) -> None:
         node2name__list = []
         for node2node__name, node2node__obj in self.components.items():
             node2name__list.append(node2node__obj.node2name)
         node2name = self.merge_one_to_one_dicts(node2name__list)
         self.node2name = node2name
 
-    def load_name2node(self):
+    def load_name2node(self) -> None:
         name2node = {v: k for k, v in self.node2name.items()}
         self.name2node = name2node
 
-    def load_graph(self):
+    def load_graph(self) -> None:
         d2p, i2p, p2p = "drug_to_protein", "indication_to_protein", "protein_to_protein"
         p2b, b2b = "protein_to_biological_function", "biological_function_to_biological_function"
         # load components and add edges as appropriate
@@ -124,7 +124,7 @@ class MSI:
             self.add_edges(self.components[b2b].edge_list, self.biological_function, self.biological_function)
         self.graph = self.graph.to_directed()  # make graph directional (copy forward and reverse of each edge)
 
-    def load_node_idx_mapping_and_nodelist(self):
+    def load_node_idx_mapping_and_nodelist(self) -> None:
         nodes = self.graph.nodes()
         node2idx = dict.fromkeys(nodes)
         nodelist = []
@@ -132,10 +132,9 @@ class MSI:
             nodelist.append(node)
             node2idx[node] = idx
         idx2node = {v: k for k, v in node2idx.items()}
-        # save
         self.nodelist, self.node2idx,  self.idx2node = nodelist, node2idx, idx2node
 
-    def load_saved_node_idx_mapping_and_nodelist(self, save_load_file_path):
+    def load_saved_node_idx_mapping_and_nodelist(self, save_load_file_path: str) -> None:
         # load node2idx
         assert (os.path.exists(save_load_file_path))
         with open(save_load_file_path, "rb") as f:
@@ -149,18 +148,18 @@ class MSI:
             nodelist.append(self.idx2node[i])
         self.nodelist = nodelist
 
-    def save_node2idx(self, save_load_file_path):
+    def save_node2idx(self, save_load_file_path: str) -> None:
         # assert(not(os.path.isfile(node2idx_file_path)))
         with open(save_load_file_path, "wb") as f:
             pickle.dump(self.node2idx, f)
 
-    def load_drugs_in_graph(self):
+    def load_drugs_in_graph(self) -> None:
         self.drugs_in_graph = list(self.type2nodes[self.drug])
 
-    def load_indications_in_graph(self):
+    def load_indications_in_graph(self) -> None:
         self.indications_in_graph = list(self.type2nodes[self.indication])
 
-    def load_drug_or_indication2proteins(self):
+    def load_drug_or_indication2proteins(self) -> None:
         # initializes a dictionary with disease and drugs as keys and values as None
         drug_or_indication2proteins = dict.fromkeys(self.drugs_in_graph + self.indications_in_graph)
         for x in self.drugs_in_graph:
@@ -171,7 +170,7 @@ class MSI:
                 drug_or_indication2proteins[y] = set(self.components["indication_to_protein"].graph.neighbors(y))
         self.drug_or_indication2proteins = drug_or_indication2proteins
 
-    def load(self):
+    def load(self) -> None:
         print('*' * 100 + '\nLoading Data\n' + '*' * 100)
         self.load_graph()
         print('*' * 100 + '\nCreating Node Indexes, Types, and Labels\n' + '*' * 100)
@@ -187,18 +186,18 @@ class MSI:
         print('*' * 100 + '\nObtaining Protein Neighborhoods for Drugs and Diseases\n' + '*' * 100)
         self.load_drug_or_indication2proteins()
 
-    def save_graph(self, save_load_file_path):
+    def save_graph(self, save_load_file_path: str) -> None:
         # graph_file_path = os.path.join(save_load_file_path, "graph.pkl")
         with open(save_load_file_path, "wb") as f:
             pickle.dump(self.graph, f)
 
-    def add_to_cs_adj_dict(self, node, successor_type, successor):
+    def add_to_cs_adj_dict(self, node: str, successor_type: str, successor: str) -> None:
         if successor_type in self.cs_adj_dict[node]:
             self.cs_adj_dict[node][successor_type].append(successor)
         else:
             self.cs_adj_dict[node][successor_type] = [successor]
 
-    def create_class_specific_adjacency_dictionary(self):
+    def create_class_specific_adjacency_dictionary(self) -> None:
         """Function creates the class-specific adjacency matrix where for all nodes, connections are established
         between the node and all of it's successors in the graph. For biological functions, an additional step is
         added where each node's up and down successors and predecessors are added to the graph with the successor
@@ -244,6 +243,7 @@ class MSI:
         :return:
             None.
         """
+
         print('---> Building Adjacency Matrix for all Nodes in Graph')
         self.create_class_specific_adjacency_dictionary()
 
