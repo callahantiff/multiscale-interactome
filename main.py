@@ -18,10 +18,9 @@ biological_function2biological_function_file_path = core_dir + '5_biological_fun
 # construct the multiscale interactome
 msi = MSI(drug2protein_directed=False, indication2protein_directed=False, protein2protein_directed=False,
           protein2biological_function_directed=False, biological_function2biological_function_directed=True,
-          drug2protein_file_path=drug2protein_file_path, indication2protein_file_path=indication2protein_file_path,
-          protein2protein_file_path=protein2protein_file_path,
-          protein2biological_function_file_path=protein2biological_function_file_path,
-          biological_function2biological_function_file_path=biological_function2biological_function_file_path)
+          drug2protein_file=drug2protein_file_path, indication2protein_file=indication2protein_file_path, protein2protein_file=protein2protein_file_path,
+          protein2biological_function_file=protein2biological_function_file_path,
+          biological_function2biological_function_file=biological_function2biological_function_file_path)
 msi.load()
 
 # save network and node information dict (also gets saved when building diffusion profiles)
@@ -56,4 +55,4 @@ dp_saved.load_diffusion_profiles(msi.drugs_in_graph + msi.indications_in_graph)
 # view diffusion profile for a specific drug
 # examples --> diffusion profile for Rosuvastatin (DB01098)
 drug_example = dp_saved.drug_or_indication2diffusion_profile["DB01098"]
-drug_example
+# drug_example
