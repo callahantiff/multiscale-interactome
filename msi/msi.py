@@ -1,8 +1,13 @@
+#!/usr/bin/env python 3
+# -*- coding: utf-8 -*-
+
+# import needed libraries
 from msi.drug_to_protein import DrugToProtein
 from msi.indication_to_protein import IndicationToProtein
 from msi.protein_to_protein import ProteinToProtein
 from msi.protein_to_biological_function import ProteinToBiologicalFunction
 from msi.biological_function_to_biological_function import BiologicalFunctionToBiologicalFunction
+from typing import Optional
 
 import networkx as nx
 import pandas as pd
@@ -11,52 +16,81 @@ import pickle
 
 
 class MSI:
-    def __init__(self, drug2protein_file_path, indication2protein_file_path, protein2protein_file_path,
-                 protein2biological_function_file_path, biological_function2biological_function_file_path,
+    def __init__(self, drug2protein_file, indication2protein_file, protein2protein_file,
+                 protein2biological_function_file, biological_function2biological_function_file,
                  drug2protein_directed=False, indication2protein_directed=False, protein2protein_directed=False,
                  protein2biological_function_directed=False, biological_function2biological_function_directed=True):
-        # parameters
-        self.cs_adj_dict, self.drug_or_indication2proteins, self.node2type, self.type2nodes = None, None, None, None
-        self.node2name, self.name2node, self.nodelist, self.node2idx, self.idx2node = None, None, None, None, None
-        self.indications_in_graph, self.drugs_in_graph = None, None
-        self.graph = nx.Graph()
-        self.components = dict()
-        self.drug_protein = "drug-protein"
-        self.indication_protein = "indication-protein"
-        self.protein_protein = "protein-protein"
-        self.protein_biological_function = "protein-biological_function"
-        self.biological_function_biological_function = "biological_function-biological_function"
-        self.drug = "drug"
-        self.indication = "indication"
-        self.protein = "protein"
-        self.biological_function = "biological_function"
-        self.up_bp = "up_biological_function"
-        self.down_bp = "down_biological_function"
-        self.weight = "weight"
-        self.nodes = [self.drug, self.indication, self.protein, self.biological_function]
-        self.edges = [self.drug_protein, self.indication_protein, self.protein_protein,
-                      self.protein_biological_function, self.biological_function_biological_function]
+        self.graph: nx.Graph = nx.Graph()
+        self.components: dict = dict()
+        self.cs_adj_dict: Optional[dict] = None
+        self.drugs_in_graph: Optional[list] = None
+        self.indications_in_graph: Optional[list] = None
+        self.drug_or_indication2proteins: Optional[list] = None
+        self.weight: str = "weight"
+        self.drug: str = "drug"
+        self.indication: str = "indication"
+        self.protein: str = "protein"
+        self.biological_function: str = "biological_function"
+        self.drug_protein: str = "drug-protein"
+        self.indication_protein: str = "indication-protein"
+        self.protein_protein: str = "protein-protein"
+        self.protein_biological_function: str = "protein-biological_function"
+        self.biological_function_biological_function: str = "biological_function-biological_function"
+        self.up_biological_function: str = "up_biological_function"
+        self.down_biological_function: str = "down_biological_function"
+        self.nodes: list = [self.drug, self.indication, self.protein, self.biological_function]
+        self.edges: list = [self.drug_protein, self.indication_protein, self.protein_protein,
+                            self.protein_biological_function, self.biological_function_biological_function]
         # file paths
-        self.drug2protein_file_path = drug2protein_file_path
-        self.indication2protein_file_path = indication2protein_file_path
-        self.protein2protein_file_path = protein2protein_file_path
-        self.protein2biological_function_file_path = protein2biological_function_file_path
-        self.biological_function2biological_function_file_path = biological_function2biological_function_file_path
-        # directed indicators
-        self.drug2protein_directed = drug2protein_directed
-        self.indication2protein_directed = indication2protein_directed
-        self.protein2protein_directed = protein2protein_directed
-        self.protein2biological_function_directed = protein2biological_function_directed
-        self.biological_function2biological_function_directed = biological_function2biological_function_directed
+        self.drug2protein_file_path: str = drug2protein_file
+        self.indication2protein_file: str = indication2protein_file
+        self.protein2protein_file: str = protein2protein_file
+        self.protein2biological_function_file: str = protein2biological_function_file
+        self.biological_function2biological_function_file: str = biological_function2biological_function_file
+        # directed edge indicators
+        self.drug2protein_directed: bool = drug2protein_directed
+        self.indication2protein_directed: bool = indication2protein_directed
+        self.protein2protein_directed: bool = protein2protein_directed
+        self.protein2biological_function_directed: bool = protein2biological_function_directed
+        self.biological_function2biological_function_directed: bool = biological_function2biological_function_directed
+        # node metadata
+        self.node2type: Optional[dict] = None
+        self.type2nodes: Optional[dict] = None
+        self.node2name: Optional[dict] = None
+        self.name2node: Optional[dict] = None
+        self.nodelist: Optional[list] = None
+        self.node2idx: Optional[dict] = None
+        self.idx2node: Optional[dict] = None
 
-    def add_edges(self, edge_list, from_node_type, to_node_type):
+    def add_edges(self, edge_list, from_node_type, to_node_type) -> None:
+        """Function adds edges from processed file to a Networkx graph. While building the Networkx graph the function
+        also adds metadata in the form the node type.
+
+        Args:
+            edge_list: A list of tuples where each tuple contains two nodes (e.g., [('DB00363', '3355')]).
+            from_node_type: A string containing the subject node type (e.g., "drug").
+            to_node_type: A string containing the object node type (e.g., "protein").
+
+        Returns:
+             None
+        """
+
         for from_node, to_node in edge_list:
             self.graph.add_edge(from_node, to_node)
             self.graph.nodes[from_node]["type"] = from_node_type
             self.graph.nodes[to_node]["type"] = to_node_type
 
     @staticmethod
-    def merge_one_to_one_dicts(dict_list: dict) -> dict:
+    def merge_one_to_one_dicts(dict_list: list) -> dict:
+        """Function combines the node2type dictionaries for all node types into a single dictionary.
+
+        Args:
+            dict_list: A list of dictionaries where keys are node identifiers and values are node types.
+
+        Returns:
+            None
+        """
+
         out_dict = dict()
         for dict_ in dict_list:
             for k, v in dict_.items():
@@ -67,7 +101,13 @@ class MSI:
         return out_dict
 
     def load_node2type(self) -> None:
-        # merge the node2type of each component (these are 1:1 dictionaries)
+        """Function loops over all the node2type dictionaries for each node type and calls the merge_one_to_one_dict
+        function in order to combine them into a single dictionary.
+
+         Returns:
+              None
+         """
+
         node2type__list = []
         for node2node__name, node2node__obj in self.components.items():
             node2type__list.append(node2node__obj.node2type)
@@ -75,6 +115,13 @@ class MSI:
         self.node2type = node2type
 
     def load_type2nodes(self) -> None:
+        """Function loops over the node2type dictionary and from it, creates the type2node dictionary by reversing the
+        keys and values.
+
+         Returns:
+              None
+         """
+
         type2nodes = {}
         for node, type_ in self.node2type.items():
             if type_ in type2nodes:
@@ -84,6 +131,13 @@ class MSI:
         self.type2nodes = type2nodes
 
     def load_node2name(self) -> None:
+        """Function loops over all the node2name dictionaries for each node type and calls the merge_one_to_one_dict
+        function in order to combine them into a single dictionary.
+
+         Returns:
+              None
+         """
+
         node2name__list = []
         for node2node__name, node2node__obj in self.components.items():
             node2name__list.append(node2node__obj.node2name)
@@ -91,12 +145,27 @@ class MSI:
         self.node2name = node2name
 
     def load_name2node(self) -> None:
+        """Function loops over the name2node dictionary and from it, creates the type2node dictionary by reversing the
+        keys and values.
+
+         Returns:
+              None
+         """
+
         name2node = {v: k for k, v in self.node2name.items()}
         self.name2node = name2node
 
     def load_graph(self) -> None:
+        """Function reads in data for each edge type and process it, so it can be used to build the Networkx graph and
+        associated metadata.
+
+        Returns:
+             None
+        """
+
         d2p, i2p, p2p = "drug_to_protein", "indication_to_protein", "protein_to_protein"
         p2b, b2b = "protein_to_biological_function", "biological_function_to_biological_function"
+
         # load components and add edges as appropriate
         print('---> Processing Drug-Protein Data')
         if (self.drug in self.nodes) and (self.drug_protein in self.edges):
@@ -104,27 +173,35 @@ class MSI:
             self.add_edges(self.components[d2p].edge_list, self.drug, self.protein)
         print('---> Processing Indication-Protein Data')
         if (self.indication in self.nodes) and (self.indication_protein in self.edges):
-            self.components[i2p] = IndicationToProtein(
-                self.indication2protein_directed, self.indication2protein_file_path)
+            self.components[i2p] = IndicationToProtein(self.indication2protein_directed, self.indication2protein_file)
             self.add_edges(self.components[i2p].edge_list, self.indication, self.protein)
         print('---> Processing Protein-Protein Data')
         if (self.protein in self.nodes) and (self.protein_protein in self.edges):
-            self.components[p2p] = ProteinToProtein(self.protein2protein_directed, self.protein2protein_file_path)
+            self.components[p2p] = ProteinToProtein(self.protein2protein_directed, self.protein2protein_file)
             self.add_edges(self.components[p2p].edge_list, self.protein, self.protein)
         print('---> Processing Protein-Biological Process Data')
         if (self.biological_function in self.nodes) and (self.protein_biological_function in self.edges):
             self.components[p2b] = ProteinToBiologicalFunction(
-                self.protein2biological_function_directed, self.protein2biological_function_file_path)
+                self.protein2biological_function_directed, self.protein2biological_function_file)
             self.add_edges(self.components[p2b].edge_list, self.protein, self.biological_function)
         print('---> Processing Biological Process-Biological Process Data')
         if (self.biological_function in self.nodes) and (self.biological_function_biological_function in self.edges):
             self.components[b2b] = BiologicalFunctionToBiologicalFunction(
-                self.biological_function2biological_function_directed,
-                self.biological_function2biological_function_file_path)
+                self.biological_function2biological_function_directed, self.biological_function2biological_function_file)
             self.add_edges(self.components[b2b].edge_list, self.biological_function, self.biological_function)
-        self.graph = self.graph.to_directed()  # make graph directional (copy forward and reverse of each edge)
+
+        # make graph directional (copy forward and reverse of each edge)
+        self.graph = self.graph.to_directed()
 
     def load_node_idx_mapping_and_nodelist(self) -> None:
+        """Function gets all the graph nodes and creates a dictionary and saves the following objects: (I) nodelist:
+        a list of the node identifiers; (II) node2idx: a dictionary where node identifiers are the keys and  integer
+        identifiers are the values; and (III) idx2node: a dictionary where integer identifiers are the keys and node
+        identifiers are the values.
+
+        Returns:
+            None
+        """
         nodes = self.graph.nodes()
         node2idx = dict.fromkeys(nodes)
         nodelist = []
@@ -135,6 +212,15 @@ class MSI:
         self.nodelist, self.node2idx,  self.idx2node = nodelist, node2idx, idx2node
 
     def load_saved_node_idx_mapping_and_nodelist(self, save_load_file_path: str) -> None:
+        """Function reads in the node2idx and idx2node dictionary objects and constructs a list of all node identifiers.
+
+        Args:
+            save_load_file_path: A string containing the file path to the node2idx dictionary object.
+
+        Returns:
+            None
+        """
+
         # load node2idx
         assert (os.path.exists(save_load_file_path))
         with open(save_load_file_path, "rb") as f:
@@ -149,17 +235,49 @@ class MSI:
         self.nodelist = nodelist
 
     def save_node2idx(self, save_load_file_path: str) -> None:
+        """Function pickles the node2idx dictionary and writes it to disc.
+
+        Args:
+            save_load_file_path: A string containing a file path.
+
+        Returns:
+            None
+        """
+
         # assert(not(os.path.isfile(node2idx_file_path)))
         with open(save_load_file_path, "wb") as f:
             pickle.dump(self.node2idx, f)
 
     def load_drugs_in_graph(self) -> None:
+        """Function extracts all node identifiers for nodes of type drug and saves them to a new object called
+        drugs_in_graph.
+
+        Returns:
+            None
+        """
+
         self.drugs_in_graph = list(self.type2nodes[self.drug])
 
     def load_indications_in_graph(self) -> None:
+        """Function extracts all node identifiers for nodes of type indication and saves them to a new object called indications_in_graph.
+
+        Returns:
+            None
+        """
+
         self.indications_in_graph = list(self.type2nodes[self.indication])
 
     def load_drug_or_indication2proteins(self) -> None:
+        """Function takes the list of all drug and indication node identifiers and for each drug and indication
+        extracts all proteins that are its neighbors. The function returns a dictionary called
+        drug_or_indication2protein, where keys are node identifiers and values are sets of node identifiers
+        representing the neighbors.
+
+
+        Returns:
+            None
+        """
+
         # initializes a dictionary with disease and drugs as keys and values as None
         drug_or_indication2proteins = dict.fromkeys(self.drugs_in_graph + self.indications_in_graph)
         for x in self.drugs_in_graph:
@@ -171,6 +289,26 @@ class MSI:
         self.drug_or_indication2proteins = drug_or_indication2proteins
 
     def load(self) -> None:
+        """Function initializes an empty Networkx graph and populates it; returns a directed graph and creates the components dictionary object which returns everything created for each resource by the NodeToNode class: DrugToProtein, IndicationToProtein, ProteinToProtein, ProteinToBiologicalFunction, BiologicalFunctionToBiologicalFunction
+
+        Each of the above scripts calls NodeToNode, which does the following:
+         - load_df - loads csv file and tasks as arguments a file path and separator
+         - load_edge_list - creates a directional edge list; assumes loaded df contains two columns with variables
+         names “node_1” and “node_2”
+         - load_graph - if the graph is directed, instantiate a networkx digraph, otherwise instantiate a graph and
+         populate it using the edge list derived in the prior step
+         - load_node2type - creates a dictionary where the keys are the node identifiers and the values are a string
+         representing the node’s type, and can also be null. To do this, it calls the update_node2attr function
+         - load_type2nodes - creates a dictionary where types are keys and values are sets of node identifiers
+         - load_node2name - creates a dictionary where node identifiers are the keys and labels containing the node
+         names are the values. To do this, it calls the update_node2attr function
+         - load_name2node - creates a dictionary where the string labels for nodes are keys and the values are the
+         nodes identifier
+
+        Returns:
+            None
+        """
+
         print('*' * 100 + '\nLoading Data\n' + '*' * 100)
         self.load_graph()
         print('*' * 100 + '\nCreating Node Indexes, Types, and Labels\n' + '*' * 100)
@@ -181,17 +319,39 @@ class MSI:
         self.load_name2node()
         print('*' * 100 + '\nObtaining Drugs in Graph\n' + '*' * 100)
         self.load_drugs_in_graph()
-        print('*' * 100 + '\nObtaining Diseases in Graph\n' + '*' * 100)
+        print('*' * 100 + '\nObtaining Indications in Graph\n' + '*' * 100)
         self.load_indications_in_graph()
-        print('*' * 100 + '\nObtaining Protein Neighborhoods for Drugs and Diseases\n' + '*' * 100)
+        print('*' * 100 + '\nObtaining Protein Neighborhoods for Drugs and Indications\n' + '*' * 100)
         self.load_drug_or_indication2proteins()
 
     def save_graph(self, save_load_file_path: str) -> None:
+        """Function writes a graph to disc as a pickled file.
+
+        Args:
+            save_load_file_path: A string containing the name of a pickled file, used to save graph.
+
+        Returns:
+            None
+        """
+
         # graph_file_path = os.path.join(save_load_file_path, "graph.pkl")
         with open(save_load_file_path, "wb") as f:
             pickle.dump(self.graph, f)
 
     def add_to_cs_adj_dict(self, node: str, successor_type: str, successor: str) -> None:
+        """Function takes a node identifier, successor_type (i.e., string containing the type of node), and a successor
+        (node identifier) and returns a nested dictionary object called cs_adj_dict, where the outer keys are node
+        identifiers and the inner dictionary contains keys which are strings of node types ("up_biological_function", "down_biological_function" or the node’s assigned type) and the values are a list of node identifiers.
+
+        Args:
+            node: A string containing a node identifier.
+            successor_type: A string containing a node type.
+            successor: A string containing a node identifier.
+
+        Returns:
+            None
+        """
+
         if successor_type in self.cs_adj_dict[node]:
             self.cs_adj_dict[node][successor_type].append(successor)
         else:
@@ -199,13 +359,17 @@ class MSI:
 
     def create_class_specific_adjacency_dictionary(self) -> None:
         """Function creates the class-specific adjacency matrix where for all nodes, connections are established
-        between the node and all of it's successors in the graph. For biological functions, an additional step is
+        between the node and all of its successors in the graph. For biological processes, an additional step is
         added where each node's up and down successors and predecessors are added to the graph with the successor
         type None.
 
-        The function returns a nested dictionary where the first key is the node id, the second key is the successor
+        The function creates a nested dictionary where the first key is the node id, the second key is the successor
         type, and the value is a list of node ids.
+
+        Returns:
+            None
         """
+
         self.cs_adj_dict = {node: {} for node in self.graph.nodes()}
         for node in self.graph.nodes():
             node_type = self.node2type[node]
@@ -221,9 +385,9 @@ class MSI:
                 successor_type = self.node2type[successor]
                 if (node_type == self.biological_function) and (successor_type == self.biological_function):
                     if successor in up_neighbors:
-                        self.add_to_cs_adj_dict(node, self.up_bp, successor)
+                        self.add_to_cs_adj_dict(node, self.up_biological_function, successor)
                     elif successor in down_neighbors:
-                        self.add_to_cs_adj_dict(node, self.down_bp, successor)
+                        self.add_to_cs_adj_dict(node, self.down_biological_function, successor)
                     else:
                         assert False
                 else:
@@ -235,13 +399,15 @@ class MSI:
         of that node type. This information is also added to the msi Networkx graph object directly with the
         attribute label "weight".
 
-        examples:
-            - adj matrix: {node id: {node_type: [nodei, nodei1, ..., nodein}}
-            - Networkx graph: [(i, j), {'weight': float}), ...]
+            examples:
+                - adj matrix: {node id: {node_type: [node_i, node_i1, ..., node_in}}
+                - Networkx graph: [(node_i, node_j), {'weight': float}), ...]
 
-        :param weights: A dictionary keyed by node type and containing probabilities as values.
-        :return:
-            None.
+        Args:
+            weights: A dictionary keyed by node type and containing probabilities as values.
+
+        Returns:
+            None
         """
 
         print('---> Building Adjacency Matrix for all Nodes in Graph')
@@ -250,6 +416,7 @@ class MSI:
         print('---> Weighting Edges')
         for from_node, adj_dict in self.cs_adj_dict.items():
             for node_type, to_nodes in adj_dict.items():
-                num_typed_nodes = len(to_nodes)  # number of successors for a specific node type
+                num_typed_nodes = len(to_nodes)
                 for to_node in to_nodes:
+                    # node type-specific weight / number of successors for that node type
                     self.graph[from_node][to_node][self.weight] = weights[node_type] / float(num_typed_nodes)
