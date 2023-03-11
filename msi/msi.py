@@ -227,10 +227,10 @@ class MSI:
 
         # load node2idx
 
-        if not os.path.exists(save_load_file_path):
+        if not os.path.exists(save_load_file_path + "msi_graph_node2idx.pkl"):
             raise FileNotFoundError("The {} object does not exist".format(save_load_file_path))
         else:
-            with open(save_load_file_path, "rb") as f:
+            with open(save_load_file_path + "msi_graph_node2idx.pkl", "rb") as f:
                 node2idx = pickle.load(f)
             self.node2idx = node2idx
             # load idx2node
