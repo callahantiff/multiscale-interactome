@@ -275,7 +275,6 @@ class DiffusionProfiles(object):
         print("*" * 100 + "\nCalculating Diffusion Profiles\n" + "*" * 100)
         start_time = datetime.now()
 
-
         # STEP 1: save msi graph and node2idx
         print("---> Saving Multi-Interactome and Node Index Dictionary")
         msi.save_graph(self.save_load_file_path)
@@ -340,7 +339,8 @@ class DiffusionProfiles(object):
             for x in drugs_and_indications:
                 f = os.path.join(self.save_load_file_path, self.clean_file_name(x) + "_p_visit_array.npy")
                 if os.path.exists(f):
-                    self.drug_or_indication2diffusion_profile[x] = np.load(f)
+                    x_diffusion_profile = np.load(f)
+                    self.drug_or_indication2diffusion_profile[x] = x_diffusion_profile
                 else:
                     raise FileNotFoundError("Loading failed at " + str(x) + " | " + str(f))
 
