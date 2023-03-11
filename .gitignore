@@ -25,3 +25,4 @@ scratch*.py
 
 #### Data and Directories
 /resources/data/*
+/results/*
