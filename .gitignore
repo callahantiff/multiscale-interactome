@@ -6,6 +6,8 @@ notebooks/.ipynb_checkpoints/*
 __pycache__
 __pycache__/
 **/__pycache__/*
+venv/*
+virtualenv_config.sh
 
 #### Testing
 .single_run
@@ -23,3 +25,4 @@ scratch*.py
 
 #### Data and Directories
 /resources/data/*
+/results/*
