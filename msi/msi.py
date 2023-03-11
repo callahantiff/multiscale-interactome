@@ -219,12 +219,16 @@ class MSI:
 
         Returns:
             None
+
+        Raises:
+            FileNotFoundError: if the string containing the file path to the node metadata points to a file that does
+                not exist.
         """
 
         # load node2idx
 
         if not os.path.exists(save_load_file_path):
-            raise FileNotFoundError("The {} object does not exist".foramt(save_load_file_path))
+            raise FileNotFoundError("The {} object does not exist".format(save_load_file_path))
         else:
             with open(save_load_file_path, "rb") as f:
                 node2idx = pickle.load(f)
