@@ -67,7 +67,7 @@ class MSI:
         also adds metadata in the form the node type.
 
         Args:
-            edge_list: A list of tuples where each tuple contains two nodes (e.g., [('DB00363', '3355')]).
+            edge_list: A list of tuples where each tuple contains two nodes (e.g., [("DB00363", "3355")]).
             from_node_type: A string containing the subject node type (e.g., "drug").
             to_node_type: A string containing the object node type (e.g., "protein").
 
@@ -167,24 +167,24 @@ class MSI:
         p2b, b2b = "protein_to_biological_function", "biological_function_to_biological_function"
 
         # load components and add edges as appropriate
-        print('---> Processing Drug-Protein Data')
+        print("---> Processing Drug-Protein Data")
         if (self.drug in self.nodes) and (self.drug_protein in self.edges):
             self.components[d2p] = DrugToProtein(self.drug2protein_directed, self.drug2protein_file_path)
             self.add_edges(self.components[d2p].edge_list, self.drug, self.protein)
-        print('---> Processing Indication-Protein Data')
+        print("---> Processing Indication-Protein Data")
         if (self.indication in self.nodes) and (self.indication_protein in self.edges):
             self.components[i2p] = IndicationToProtein(self.indication2protein_directed, self.indication2protein_file)
             self.add_edges(self.components[i2p].edge_list, self.indication, self.protein)
-        print('---> Processing Protein-Protein Data')
+        print("---> Processing Protein-Protein Data")
         if (self.protein in self.nodes) and (self.protein_protein in self.edges):
             self.components[p2p] = ProteinToProtein(self.protein2protein_directed, self.protein2protein_file)
             self.add_edges(self.components[p2p].edge_list, self.protein, self.protein)
-        print('---> Processing Protein-Biological Process Data')
+        print("---> Processing Protein-Biological Process Data")
         if (self.biological_function in self.nodes) and (self.protein_biological_function in self.edges):
             self.components[p2b] = ProteinToBiologicalFunction(
                 self.protein2biological_function_directed, self.protein2biological_function_file)
             self.add_edges(self.components[p2b].edge_list, self.protein, self.biological_function)
-        print('---> Processing Biological Process-Biological Process Data')
+        print("---> Processing Biological Process-Biological Process Data")
         if (self.biological_function in self.nodes) and (self.biological_function_biological_function in self.edges):
             self.components[b2b] = BiologicalFunctionToBiologicalFunction(
                 self.biological_function2biological_function_directed, self.biological_function2biological_function_file)
@@ -222,17 +222,20 @@ class MSI:
         """
 
         # load node2idx
-        assert (os.path.exists(save_load_file_path))
-        with open(save_load_file_path, "rb") as f:
-            node2idx = pickle.load(f)
-        self.node2idx = node2idx
-        # load idx2node
-        self.idx2node = {v: k for k, v in self.node2idx.items()}
-        # load nodelist
-        nodelist = []
-        for i in range(0, len(self.idx2node)):
-            nodelist.append(self.idx2node[i])
-        self.nodelist = nodelist
+
+        if not os.path.exists(save_load_file_path):
+            raise FileNotFoundError("The {} object does not exist".foramt(save_load_file_path))
+        else:
+            with open(save_load_file_path, "rb") as f:
+                node2idx = pickle.load(f)
+            self.node2idx = node2idx
+            # load idx2node
+            self.idx2node = {v: k for k, v in self.node2idx.items()}
+            # load nodelist
+            nodelist = []
+            for i in range(0, len(self.idx2node)):
+                nodelist.append(self.idx2node[i])
+            self.nodelist = nodelist
 
     def save_node2idx(self, save_load_file_path: str) -> None:
         """Function pickles the node2idx dictionary and writes it to disc.
@@ -244,7 +247,6 @@ class MSI:
             None
         """
 
-        # assert(not(os.path.isfile(node2idx_file_path)))
         with open(save_load_file_path, "wb") as f:
             pickle.dump(self.node2idx, f)
 
@@ -309,19 +311,19 @@ class MSI:
             None
         """
 
-        print('*' * 100 + '\nLoading Data\n' + '*' * 100)
+        print("*" * 100 + "\nLoading Data\n" + "*" * 100)
         self.load_graph()
-        print('*' * 100 + '\nCreating Node Indexes, Types, and Labels\n' + '*' * 100)
+        print("*" * 100 + "\nCreating Node Indexes, Types, and Labels\n" + "*" * 100)
         self.load_node_idx_mapping_and_nodelist()
         self.load_node2type()
         self.load_type2nodes()
         self.load_node2name()
         self.load_name2node()
-        print('*' * 100 + '\nObtaining Drugs in Graph\n' + '*' * 100)
+        print("*" * 100 + "\nObtaining Drugs in Graph\n" + "*" * 100)
         self.load_drugs_in_graph()
-        print('*' * 100 + '\nObtaining Indications in Graph\n' + '*' * 100)
+        print("*" * 100 + "\nObtaining Indications in Graph\n" + "*" * 100)
         self.load_indications_in_graph()
-        print('*' * 100 + '\nObtaining Protein Neighborhoods for Drugs and Indications\n' + '*' * 100)
+        print("*" * 100 + "\nObtaining Protein Neighborhoods for Drugs and Indications\n" + "*" * 100)
         self.load_drug_or_indication2proteins()
 
     def save_graph(self, save_load_file_path: str) -> None:
@@ -360,7 +362,7 @@ class MSI:
     def create_class_specific_adjacency_dictionary(self) -> None:
         """Function creates the class-specific adjacency matrix where for all nodes, connections are established
         between the node and all of its successors in the graph. For biological processes, an additional step is
-        added where each node's up and down successors and predecessors are added to the graph with the successor
+        added where each node"s up and down successors and predecessors are added to the graph with the successor
         type None.
 
         The function creates a nested dictionary where the first key is the node id, the second key is the successor
@@ -401,7 +403,7 @@ class MSI:
 
             examples:
                 - adj matrix: {node id: {node_type: [node_i, node_i1, ..., node_in}}
-                - Networkx graph: [(node_i, node_j), {'weight': float}), ...]
+                - Networkx graph: [(node_i, node_j), {"weight": float}), ...]
 
         Args:
             weights: A dictionary keyed by node type and containing probabilities as values.
@@ -410,10 +412,10 @@ class MSI:
             None
         """
 
-        print('---> Building Adjacency Matrix for all Nodes in Graph')
+        print("---> Building Adjacency Matrix for all Nodes in Graph")
         self.create_class_specific_adjacency_dictionary()
 
-        print('---> Weighting Edges')
+        print("---> Weighting Edges")
         for from_node, adj_dict in self.cs_adj_dict.items():
             for node_type, to_nodes in adj_dict.items():
                 num_typed_nodes = len(to_nodes)
