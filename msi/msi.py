@@ -366,7 +366,7 @@ class MSI:
     def create_class_specific_adjacency_dictionary(self) -> None:
         """Function creates the class-specific adjacency matrix where for all nodes, connections are established
         between the node and all of its successors in the graph. For biological processes, an additional step is
-        added where each node"s up and down successors and predecessors are added to the graph with the successor
+        added where each node's up and down successors and predecessors are added to the graph with the successor
         type None.
 
         The function creates a nested dictionary where the first key is the node id, the second key is the successor
