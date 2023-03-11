@@ -41,7 +41,8 @@ weight_dict = {
 }
 
 # derive diffusion profiles
-cores = int(multiprocessing.cpu_count()/2) - 4 if int(multiprocessing.cpu_count()/2) - 4 > 0 else 1
+available_cores = int(multiprocessing.cpu_count() / 2) - 4
+cores = available_cores if available_cores > 0 else 1
 dp = DiffusionProfiles(alpha=alpha, max_iter=1000, tol=1e-06, weights=weight_dict,
                        num_cores=cores, save_load_file_path="results/")
 dp.calculate_diffusion_profiles(msi)
