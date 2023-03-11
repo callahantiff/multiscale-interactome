@@ -251,7 +251,7 @@ class MSI:
             None
         """
 
-        with open(save_load_file_path, "wb") as f:
+        with open(save_load_file_path + "msi_graph_node2idx.pkl", "wb") as f:
             pickle.dump(self.node2idx, f)
 
     def load_drugs_in_graph(self) -> None:
@@ -341,7 +341,7 @@ class MSI:
         """
 
         # graph_file_path = os.path.join(save_load_file_path, "graph.pkl")
-        with open(save_load_file_path, "wb") as f:
+        with open(save_load_file_path + "msi_graph.pkl", "wb") as f:
             pickle.dump(self.graph, f)
 
     def add_to_cs_adj_dict(self, node: str, successor_type: str, successor: str) -> None:
