@@ -23,11 +23,6 @@ msi = MSI(drug2protein_directed=False, indication2protein_directed=False, protei
           biological_function2biological_function_file=biological_function2biological_function_file_path)
 msi.load()
 
-# # save network and node information dict (also gets saved when building diffusion profiles)
-# msi.save_graph("results/msi_graph.pkl")
-# msi.save_node2idx("results/msi_graph_node2idx.pkl")
-
-
 ### STEP 2 -- Build Diffusion Profiles
 # set inputs with default values according to README instructions
 alpha = 0.8595436247434408
@@ -39,21 +34,19 @@ weight_dict = {
     "protein": 4.396695660380823,
     "drug": 3.2071696595616364
 }
-
-# derive diffusion profiles
+# determine number of cores to use for parallel processing
 available_cores = int(multiprocessing.cpu_count() / 2) - 4
 cores = available_cores if available_cores > 0 else 1
-dp = DiffusionProfiles(alpha=alpha, max_iter=1000, tol=1e-06, weights=weight_dict,
-                       num_cores=cores, save_load_file_path="results/")
+
+# build diffusion profiles
+dp = DiffusionProfiles(alpha=alpha, max_iter=1000, tol=1e-06, weights=weight_dict, num_cores=cores)
 dp.calculate_diffusion_profiles(msi)
 
 # load a saved diffusion profile
-dp_saved = DiffusionProfiles(alpha=None, max_iter=None, tol=None, weights=None, num_cores=None,
-                             save_load_file_path="results/")
+dp_saved = DiffusionProfiles()
 msi.load_saved_node_idx_mapping_and_nodelist(dp_saved.save_load_file_path)
-dp_saved.load_diffusion_profiles(msi.drugs_in_graph + msi.indications_in_graph)
+dp_saved.load_diffusion_profiles()
 
 # view diffusion profile for a specific drug
 # examples --> diffusion profile for Rosuvastatin (DB01098)
-drug_example = dp_saved.drug_or_indication2diffusion_profile["DB01098"]
-# drug_example
+dp_saved.diffusion_profile_lookup("DB01098")
