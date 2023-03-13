@@ -44,7 +44,6 @@ dp.calculate_diffusion_profiles(msi)
 
 # load a saved diffusion profile
 dp_saved = DiffusionProfiles()
-msi.load_saved_node_idx_mapping_and_nodelist(dp_saved.save_load_file_path)
 dp_saved.load_diffusion_profiles()
 
 # view diffusion profile for a specific drug
