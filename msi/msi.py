@@ -47,6 +47,7 @@ class MSI:
         self.protein2protein_file: str = protein2protein_file
         self.protein2biological_function_file: str = protein2biological_function_file
         self.biological_function2biological_function_file: str = biological_function2biological_function_file
+        self.save_load_file_path: str = "results/"
         # directed edge indicators
         self.drug2protein_directed: bool = drug2protein_directed
         self.indication2protein_directed: bool = indication2protein_directed
@@ -241,18 +242,24 @@ class MSI:
                 nodelist.append(self.idx2node[i])
             self.nodelist = nodelist
 
-    def save_node2idx(self, save_load_file_path: str) -> None:
-        """Function pickles the node2idx dictionary and writes it to disc.
+    @staticmethod
+    def save_msi_object(save_load_file: str, data_obj: dict) -> None:
+        """Function pickles a dictionary containing node metadata or the networkx graph and writes it to disc.
 
         Args:
-            save_load_file_path: A string containing a file path.
+            save_load_file: A string containing a file path.
+            data_obj: A node metadata dictionary object.
 
         Returns:
             None
         """
 
-        with open(save_load_file_path + "msi_graph_node2idx.pkl", "wb") as f:
-            pickle.dump(self.node2idx, f)
+        if isinstance(data_obj, nx.Graph):
+            with open(save_load_file, "wb") as f:
+                pickle.dump(data_obj, f)
+        else:
+            with open(save_load_file, "wb") as f:
+                pickle.dump(data_obj, f)
 
     def load_drugs_in_graph(self) -> None:
         """Function extracts all node identifiers for nodes of type drug and saves them to a new object called
@@ -331,19 +338,14 @@ class MSI:
         print("---> Obtaining Protein Neighborhoods for Drugs and Indications")
         self.load_drug_or_indication2proteins()
 
-    def save_graph(self, save_load_file_path: str) -> None:
-        """Function writes a graph to disc as a pickled file.
+        # save graph data
+        print("---> Saving Multi-Interactome and Node Metadata Dictionaries")
+        self.save_msi_object(self.save_load_file_path + "msi_graph.pkl", self.graph)
+        self.save_msi_object(self.save_load_file_path + "msi_graph_node2idx.pkl", self.node2idx)
+        self.save_msi_object(self.save_load_file_path + "msi_graph_node2name.pkl", self.node2name)
+        self.save_msi_object(self.save_load_file_path + "msi_graph_node2type.pkl", self.node2type)
 
-        Args:
-            save_load_file_path: A string containing the name of a pickled file, used to save graph.
-
-        Returns:
-            None
-        """
-
-        # graph_file_path = os.path.join(save_load_file_path, "graph.pkl")
-        with open(save_load_file_path + "msi_graph.pkl", "wb") as f:
-            pickle.dump(self.graph, f)
+        return None
 
     def add_to_cs_adj_dict(self, node: str, successor_type: str, successor: str) -> None:
         """Function takes a node identifier, successor_type (i.e., string containing the type of node), and a successor
