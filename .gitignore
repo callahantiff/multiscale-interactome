@@ -5,7 +5,7 @@
 notebooks/.ipynb_checkpoints/*
 __pycache__
 __pycache__/
-**/__pycache__/*
+*.pyc
 venv/*
 virtualenv_config.sh
 
@@ -26,3 +26,4 @@ scratch*.py
 #### Data and Directories
 /resources/data/*
 /results/*
+
