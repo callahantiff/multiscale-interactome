@@ -16,8 +16,8 @@ import pickle
 
 
 class MSI:
-    def __init__(self, drug2protein_file, indication2protein_file, protein2protein_file,
-                 protein2biological_function_file, biological_function2biological_function_file,
+    def __init__(self, drug2protein_file=None, indication2protein_file=None, protein2protein_file=None,
+                 protein2biological_function_file=None, biological_function2biological_function_file=None,
                  drug2protein_directed=False, indication2protein_directed=False, protein2protein_directed=False,
                  protein2biological_function_directed=False, biological_function2biological_function_directed=True):
         self.graph: nx.Graph = nx.Graph()
@@ -167,24 +167,24 @@ class MSI:
         p2b, b2b = "protein_to_biological_function", "biological_function_to_biological_function"
 
         # load components and add edges as appropriate
-        print("---> Processing Drug-Protein Data")
+        print("\t- Processing Drug-Protein Data")
         if (self.drug in self.nodes) and (self.drug_protein in self.edges):
             self.components[d2p] = DrugToProtein(self.drug2protein_directed, self.drug2protein_file_path)
             self.add_edges(self.components[d2p].edge_list, self.drug, self.protein)
-        print("---> Processing Indication-Protein Data")
+        print("\t- Processing Indication-Protein Data")
         if (self.indication in self.nodes) and (self.indication_protein in self.edges):
             self.components[i2p] = IndicationToProtein(self.indication2protein_directed, self.indication2protein_file)
             self.add_edges(self.components[i2p].edge_list, self.indication, self.protein)
-        print("---> Processing Protein-Protein Data")
+        print("\t- Processing Protein-Protein Data")
         if (self.protein in self.nodes) and (self.protein_protein in self.edges):
             self.components[p2p] = ProteinToProtein(self.protein2protein_directed, self.protein2protein_file)
             self.add_edges(self.components[p2p].edge_list, self.protein, self.protein)
-        print("---> Processing Protein-Biological Process Data")
+        print("\t- Processing Protein-Biological Process Data")
         if (self.biological_function in self.nodes) and (self.protein_biological_function in self.edges):
             self.components[p2b] = ProteinToBiologicalFunction(
                 self.protein2biological_function_directed, self.protein2biological_function_file)
             self.add_edges(self.components[p2b].edge_list, self.protein, self.biological_function)
-        print("---> Processing Biological Process-Biological Process Data")
+        print("\t- Processing Biological Process-Biological Process Data")
         if (self.biological_function in self.nodes) and (self.biological_function_biological_function in self.edges):
             self.components[b2b] = BiologicalFunctionToBiologicalFunction(
                 self.biological_function2biological_function_directed, self.biological_function2biological_function_file)
@@ -315,19 +315,20 @@ class MSI:
             None
         """
 
-        print("*" * 100 + "\nLoading Data\n" + "*" * 100)
+        print("\n\n" + "*" * 100 + "\nConstructing Multi-Scale Interactome\n" + "*" * 100)
+        print("---> Loading Data")
         self.load_graph()
-        print("*" * 100 + "\nCreating Node Indexes, Types, and Labels\n" + "*" * 100)
+        print("---> Creating Node Indexes, Types, and Labels")
         self.load_node_idx_mapping_and_nodelist()
         self.load_node2type()
         self.load_type2nodes()
         self.load_node2name()
         self.load_name2node()
-        print("*" * 100 + "\nObtaining Drugs in Graph\n" + "*" * 100)
+        print("---> Obtaining Drugs in Graph")
         self.load_drugs_in_graph()
-        print("*" * 100 + "\nObtaining Indications in Graph\n" + "*" * 100)
+        print("---> Obtaining Indications in Graph")
         self.load_indications_in_graph()
-        print("*" * 100 + "\nObtaining Protein Neighborhoods for Drugs and Indications\n" + "*" * 100)
+        print("---> Obtaining Protein Neighborhoods for Drugs and Indications")
         self.load_drug_or_indication2proteins()
 
     def save_graph(self, save_load_file_path: str) -> None:
