@@ -5,7 +5,11 @@
 notebooks/.ipynb_checkpoints/*
 __pycache__
 __pycache__/
-**/__pycache__/*
+*.pyc
+msi/__pycache__/drug_to_protein.cpython-36.pyc
+msi/__pycache__/indication_to_protein.cpython-36.pyc
+msi/__pycache__/node_to_node.cpython-36.pyc
+msi/__pycache__/protein_to_protein.cpython-36.pyc
 venv/*
 virtualenv_config.sh
 
