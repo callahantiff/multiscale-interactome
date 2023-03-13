@@ -28,10 +28,10 @@ class DiffusionProfiles(object):
         self.num_cores: Optional[int] = num_cores
         self.initial_m: Optional[scipy.sparse.csr.csr_matrix] = None
         self.diffusion_profile: Optional[dict] = None
-        self.diffusion_profile_dict: Optional[dict] = None
+        self.diffusion_profile_matrix: Optional[np.array] = None
+        self.matrix_index_dict: Optional[dict] = None
         self.save_load_file_path: str = "results/"
         self.diffusion_profile_file_name: str = "_diffusion_profile.npy"
-        self.diffusion_profile_matrix_file_name: str = "msi_diffusion_profile_dictionary.pkl"
 
     def get_initial_m(self, msi):
         """This function is adapted from the NetworkX implementation of Personalized PageRank. Function takes a msi
@@ -219,10 +219,9 @@ class DiffusionProfiles(object):
         return None
 
     def process_saved_diffusion_profiles(self) -> None:
-        """Function reads in  saved numpy arrays for all nodes in the msi graph and appends them to a numpy matrix. To
-        clean up the dive, after each node's diffusion profile is added to the master numpy matrix, it's individual
-        file is deleted. The resulting matrix is indexed by the nodelist ordering. The node list and resulting numpy
-        matrix are saved to a dictionary and the dictionary is pickled.
+        """Function reads in  saved numpy arrays for all nodes in the msi graph and appends them to a numpy matrix. The
+        resulting matrix is indexed by the nodelist ordering. The node list and resulting numpy matrix are saved as
+        separate files and pickled.
 
         Returns:
              None.
@@ -239,12 +238,13 @@ class DiffusionProfiles(object):
 
         # create dictionary to store node list and diffusion profile matrix
         diffusion_profile_matrix = np.asarray(diffusion_profile_matrix)
-        self.diffusion_profile_dict = {"node_list": msi.nodelist, "diffusion_profiles": diffusion_profile_matrix}
-        file_name = os.path.join(self.save_load_file_path, self.diffusion_profile_matrix_file_name)
-        with open(file_name, "wb") as handle:
-            pickle.dump(self.diffusion_profile_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-        print("Diffusion profile matrix and node list dictionary saved to: {}".format(file_name))
+        file_name1 = os.path.join(self.save_load_file_path, 'msi_diffusion_profile_matrix.npy')
+        np.save(file_name1, diffusion_profile_matrix)
+        # saving node index information
+        file_name2 = os.path.join(self.save_load_file_path, 'msi_diffusion_profile_matrix_index_ids.npy')
+        node_idx_dict = {x[0]: x[1] for x in enumerate(msi.nodelist)}
+        pickle.dump(node_idx_dict, open(file_name2, "wb"), protocol=pickle.HIGHEST_PROTOCOL)
+        print("Saving diffusion profile matrix ({}) and node index dictionary ({})".format(fiel_name1, file_name2))
 
         return None
 
@@ -379,8 +379,8 @@ class DiffusionProfiles(object):
             proc.terminate()
 
         # STEP 5: process diffusion profiles to create a single matrix containing all diffusion profiles
-        # print("---> Converting Node's Diffusion Profiles into a Single Diffusion Profile Matrix")
-        # self.process_saved_diffusion_profiles()
+        print("---> Converting Node's Diffusion Profiles into a Single Diffusion Profile Matrix")
+        self.process_saved_diffusion_profiles()
 
         # complete process and output runtime
         end_time = datetime.now()
@@ -392,19 +392,24 @@ class DiffusionProfiles(object):
         """ Function loads diffusion profiles dictionary object.
 
         Returns:
-            None.
+            diffusion_profile_matrix: A numpy array where rows are node identifiers and columns are diffusion
+                profile values.
+            node_idx_dict: A dictionary keyed by matrix index with node identifiers as values.
 
         Raises:
             FileNotFoundError: if diffusion profile dictionary cannot be found.
         """
 
-        file_name = os.path.join(self.save_load_file_path, self.diffusion_profile_matrix_file_name)
-        if not os.path.exists(f):
+        file_name1 = os.path.join(self.save_load_file_path, 'msi_diffusion_profile_matrix.npy')
+        file_name2 = os.path.join(self.save_load_file_path, 'msi_diffusion_profile_matrix_index_ids.npy')
+        if not os.path.exists(file_name1) and not os.path.exists(file_name2):
             raise FileNotFoundError("Cannot find file: {}".format(file_name))
         else:
             print("\n" + "*" * 100 + "\nLoading Diffusion Profiles\n" + "*" * 100)
-            with open(file_name, "rb") as handle:
-                self.diffusion_profile_dict = pickle.load(handle)
+            # loading diffusion profile data
+            self.diffusion_profile_matrix = np.load(file_name1)
+            # loading node index information
+            self.matrix_index_dict = pickle.load(open(file_name2, "rb"))
 
             return None
 
@@ -421,10 +426,10 @@ class DiffusionProfiles(object):
             KeyError: If a node is not found within the diffusion profile matrix dictionary.
         """
 
-        if node not in self.diffusion_profile_dict["node_list"]:
+        if node not in self.matrix_index_dict.values():
             raise KeyError("There is no diffusion profile for: {}")
         else:
-            node_idx = self.diffusion_profile_dict["node_list"].index(node)
-            node_diffusion_profile = self.diffusion_profile_dict["diffusion_profiles"][node_idx]
+            node_idx = [k for k, v in self.matrix_index_dict.items() if v == node]
+            node_diffusion_profile = self.diffusion_profile_matrix[node_idx]
 
             return node_diffusion_profile
