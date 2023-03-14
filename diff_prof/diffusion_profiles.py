@@ -234,7 +234,7 @@ class DiffusionProfiles(object):
             node_diffusion_profile = np.load(f)
             # append node diffusion profile to numpy matrix
             diffusion_profile_matrix.append(node_diffusion_profile)
-            # os.remove(f)  # delete single diffusion profile files
+            os.remove(f)  # delete single diffusion profile files
 
         # create dictionary to store node list and diffusion profile matrix
         diffusion_profile_matrix = np.asarray(diffusion_profile_matrix)
