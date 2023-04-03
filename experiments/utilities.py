@@ -39,7 +39,7 @@ def similarity_search(matrix: np.array, index_node: int, top_n: int = 10) -> lis
     return similar_nodes
 
 
-def results_formatter(results: list, node_idx: dict, labels: dict, types: dict, exclude: Optional[list] = None) -> None:
+def results_formatter(results: list, node_idx: dict, labels: dict, types: dict, include: Optional[list] = None) -> None:
     """Function takes the results of a similarity search and several dictionaries containing node metadata. Using the
     metadata dictionaries, the results of the similarity search are formatted and printed.
 
@@ -48,7 +48,7 @@ def results_formatter(results: list, node_idx: dict, labels: dict, types: dict, 
         node_idx: A dictionary where keys are matrix indices and values are node identifiers.
         labels: A dictionary where keys are node identifiers and values are node labels.
         types: A dictionary where keys are node identifiers and values are node types.
-        exclude: A list of node types that should be ignored. Possible types include: 'drug', 'protein',
+        include: A list of node types that should be included. Possible types include: 'drug', 'protein',
                  'biological_function', and 'indication'.
 
     Returns:
@@ -60,10 +60,10 @@ def results_formatter(results: list, node_idx: dict, labels: dict, types: dict, 
     for node, score in results:
         node_id = node_idx[node]; node_label, node_type = labels[node_id], types[node_id]
         score = round(score, 8)  # to make things that are more similar have a larger score
-        if exclude is not None and node_type.lower() not in exclude:
+        if include is not None and node_type.lower() in include:
             r = "{} (id: {}, type: {}); Score: {}".format(node_label, node_id, node_type, score)
             formatted_results += [r]
-        if exclude is None:
+        if include is None:
             r = "{} (id: {}, type: {}); Score: {}".format(node_label, node_id, node_type, score)
             formatted_results += [r]
 
@@ -74,13 +74,14 @@ def results_formatter(results: list, node_idx: dict, labels: dict, types: dict, 
     return None
 
 
-def remove_self_importance(matrix: np.array) -> np.array:
+def remove_self_importance(matrix: np.array, node_idx: dict) -> np.array:
     """Function creates a new version of the diffusion profile matrix, where the self-importance score of each node
     removed.
 
     Args:
         matrix: A Numpy array storing a matrix, where rows contain diffusion profiles for each node and column values
             contain importance scores between that node and all other nodes in the original graph.
+        node_idx: A dictionary where keys are matrix indices and values are node identifiers.
 
     Returns:
          matrix_adj: A Numpy array that has been updated such that each row or node (i.e., diffusion profile) does
@@ -88,7 +89,7 @@ def remove_self_importance(matrix: np.array) -> np.array:
     """
 
     adj_diff_profiles = []
-    for node in tqdm(node_idx_dict.keys()):
+    for node in tqdm(node_idx.keys()):
         # find node's array
         node_matrix = matrix[node]
         #  remove self-importance score
