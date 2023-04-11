@@ -20,7 +20,7 @@ WEIGHT: str = "weight"
 
 
 class DiffusionProfiles(object):
-    def __init__(self, alpha=None, max_iter=None, tol=None, weights=None, num_cores=None):
+    def __init__(self, alpha=None, max_iter=None, tol=None, weights=None, num_cores=None, save_load_file_path="results/"):
         self.alpha: Optional[float] = alpha
         self.max_iter: Optional[int] = max_iter
         self.tol: Optional[float] = tol
@@ -30,7 +30,7 @@ class DiffusionProfiles(object):
         self.diffusion_profile: Optional[dict] = None
         self.diffusion_profile_matrix: Optional[np.array] = None
         self.matrix_index_dict: Optional[dict] = None
-        self.save_load_file_path: str = "results/"
+        self.save_load_file_path: str = save_load_file_path
         self.diffusion_profile_file_name: str = "_diffusion_profile.npy"
 
     def get_initial_m(self, msi):

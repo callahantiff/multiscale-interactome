@@ -19,7 +19,8 @@ class MSI:
     def __init__(self, drug2protein_file=None, indication2protein_file=None, protein2protein_file=None,
                  protein2biological_function_file=None, biological_function2biological_function_file=None,
                  drug2protein_directed=False, indication2protein_directed=False, protein2protein_directed=False,
-                 protein2biological_function_directed=False, biological_function2biological_function_directed=True):
+                 protein2biological_function_directed=False, biological_function2biological_function_directed=True,
+                 save_load_file_path="results/"):
         self.graph: nx.Graph = nx.Graph()
         self.components: dict = dict()
         self.cs_adj_dict: Optional[dict] = None
@@ -47,7 +48,7 @@ class MSI:
         self.protein2protein_file: str = protein2protein_file
         self.protein2biological_function_file: str = protein2biological_function_file
         self.biological_function2biological_function_file: str = biological_function2biological_function_file
-        self.save_load_file_path: str = "results/"
+        self.save_load_file_path: str = save_load_file_path
         # directed edge indicators
         self.drug2protein_directed: bool = drug2protein_directed
         self.indication2protein_directed: bool = indication2protein_directed
