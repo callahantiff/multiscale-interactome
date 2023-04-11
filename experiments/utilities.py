@@ -118,7 +118,7 @@ def remove_self_importance(matrix: np.array, node_idx: dict) -> np.array:
     for node in tqdm(node_idx.keys()):
         # find node's array
         node_matrix = matrix[node]
-        #  remove self-importance score
+        # remove self-importance score
         node_mod = list(node_matrix)[0:node] + list(node_matrix)[node + 1:]
         # append node diffusion profile to numpy matrix
         adj_diff_profiles.append(node_mod)
