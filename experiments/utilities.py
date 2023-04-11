@@ -190,7 +190,7 @@ def get_overlapping_concepts(n1_list: list, n2_list: list, node_index: dict, nod
     sim_common = set([x[0] for x in n1_list]) & set([x[0] for x in n2_list])
     results = []
     for i in sim_common:
-        var_name, var_id, var_type = node_labels[node_index[i]], node_index[i], node_types[node_idx_dict[i]]
+        var_name, var_id, var_type = node_labels[node_index[i]], node_index[i], node_types[node_index[i]]
         n1_score = [x[1] for x in n1_list if i == x[0]][0]
         n2_score = [x[1] for x in n2_list if i == x[0]][0]
         # score metrics
@@ -199,7 +199,7 @@ def get_overlapping_concepts(n1_list: list, n2_list: list, node_index: dict, nod
         mean_sim = np.mean([n1_score, n2_score])
         median_sim = np.median([n1_score, n2_score])
         geomean_sim = gmean([n1_score, n2_score])
-        results.append([var_name, var_id, var_type, lis_score, cu_score, min_sim, max_sim, mean_sim, median_sim, geomean_sim])
+        results.append([var_name, var_id, var_type, n1_score, n2_score, min_sim, max_sim, mean_sim, median_sim, geomean_sim])
     # store results as a pandas DF
     df_sim_overlap = pd.DataFrame(data={
         'concept_name': [x[0] for x in results],
