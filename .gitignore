@@ -32,3 +32,4 @@ scratch*.py
 /resources/data/*
 /results/*
 /experiments/*.tsv
+/*/*.zip
