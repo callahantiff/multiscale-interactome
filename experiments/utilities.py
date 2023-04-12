@@ -29,13 +29,13 @@ def gets_simple_statistics(results_list: list, data_type: str, value_type: str) 
     # calculate stats
     min_value = min(results_list)
     max_value = max(results_list)
-    median_value = round(np.median(results_list), 3)
-    mean_value = round(np.mean(results_list), 3)
+    median_value = np.median(results_list)
+    mean_value = np.mean(results_list)
     # format output
-    print_string = "Statistics ({}, {}): min={}; max={}; median={}; mean={}"
+    print_string = "Statistics ({}, {}):\n  - min={}; max={}; median={}; mean={}"
     formatted_string = print_string.format(data_type, value_type, min_value, max_value, median_value, mean_value)
 
-    return formatted_string
+    print(formatted_string)
 
 
 def similarity_search(matrix: np.array, index_node: int, top_n: int = 10) -> list:
@@ -152,14 +152,22 @@ def get_node_pair_importance(matrix: np.array, node1_index: int, node2_index: in
     dp_imp_node1 = matrix[node1_index]
     dp_imp_node2 = matrix[node2_index]
 
+    # get individual profile information
+
+
+
     # format strings
     str1 = "The importance of {} within {}'s Diffusion Profile: {}"
-    str2 = "The average importance of both node's Diffusion Profiles: {}"
+    str2 = "  - The minimum importance of both node's Diffusion Profiles: {}"
+    str3 = "  - The maximum importance of both node's Diffusion Profiles: {}"
+    str4 = "  - The average importance of both node's Diffusion Profiles: {}"
 
     # get importance between two nodes
     imp_list = [str1.format(n2_name, n1_name, dp_imp_node1[node2_index]),
                 str1.format(n1_name, n2_name, dp_imp_node2[node1_index]),
-                str2.format(float(dp_imp_node1[node2_index] + dp_imp_node2[node1_index]) / 2.0)]
+                str2.format(min([dp_imp_node1[node2_index], dp_imp_node2[node1_index]])),
+                str3.format(max([dp_imp_node1[node2_index], dp_imp_node2[node1_index]])),
+                str4.format(np.mean([dp_imp_node1[node2_index], dp_imp_node2[node1_index]]))]
 
     return imp_list
 
