@@ -223,3 +223,32 @@ def get_overlapping_concepts(n1_list: list, n2_list: list, node_index: dict, nod
     })
 
     return df_sim_overlap
+
+
+def importance_rank_lookup(input_dp_matrix: np.array, node_idx_dict: dict, search_list: list) -> dict:
+    """Function takes a node's diffusion profile, a dictionary of node identifier-matrix index mappings,
+    and a list of codes that are known to be in the diffusion profile. The function searches each code
+    and returns a dictionary keyed by the rank of the code when sorted by importance and values are
+    tuples with code and the code's importance score.
+
+    Returns:
+        res_dict: A dictionary keyed by rank, where values are a tuple with first item is the
+            code and the second item is the score.
+    """
+
+    res_dict = dict()
+    for x in search_list:
+        # get node index
+        node_idx = [k for k, v in node_idx_dict.items() if v == x][0]
+        # create a dictionary to keep track of node index and score
+        node_imp_dict = {input_dp_matrix[x]: x for x in node_idx_dict.keys()}
+        # sort dictionary on importance
+        rank_dict = OrderedDict(sorted(node_imp_dict.items(), reverse=True))
+        # get the nodes score in the input matrix
+        node_score = [(k, v) for k, v in node_imp_dict.items() if v == node_idx]
+        # get the rank of the node within the input matrix
+        node_rank = list(rank_dict.items()).index(node_score[0])
+        # add results to dictionary
+        res_dict[node_rank] = [x, node_score[0][0]]
+
+    return res_dict
