@@ -53,6 +53,10 @@ dp_saved.drug_or_indication2diffusion_profile["DB01098"]
 ```
 
 ## Datasets
+There were several issues identified with the original data. The cleaned data are available for download from Zenodo,
+here: https://zenodo.org/record/7819798#.ZD7xPezMI8P.
+
+*ORIGINAL DATA*  
 All data is provided at http://snap.stanford.edu/multiscale-interactome/data/data.tar.gz and includes:
 1. Supplementary dataset of interactions between drugs and proteins
 2. Supplementary dataset of interactions between diseases and proteins
