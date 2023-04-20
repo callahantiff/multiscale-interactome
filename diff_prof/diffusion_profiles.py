@@ -20,7 +20,7 @@ WEIGHT: str = "weight"
 
 
 class DiffusionProfiles(object):
-    def __init__(self, alpha=None, max_iter=None, tol=None, weights=None, num_cores=None):
+    def __init__(self, alpha=None, max_iter=None, tol=None, weights=None, num_cores=None, save_load_file_path="results/"):
         self.alpha: Optional[float] = alpha
         self.max_iter: Optional[int] = max_iter
         self.tol: Optional[float] = tol
@@ -30,7 +30,7 @@ class DiffusionProfiles(object):
         self.diffusion_profile: Optional[dict] = None
         self.diffusion_profile_matrix: Optional[np.array] = None
         self.matrix_index_dict: Optional[dict] = None
-        self.save_load_file_path: str = "results/"
+        self.save_load_file_path: str = save_load_file_path
         self.diffusion_profile_file_name: str = "_diffusion_profile.npy"
 
     def get_initial_m(self, msi):
@@ -166,8 +166,7 @@ class DiffusionProfiles(object):
         # personalization vector
         missing = set(nodelist) - set(per_dict)
         if missing:
-            raise NetworkXError(
-                "Personalization dictionary must have a value for every node. Missing nodes %s" % missing)
+            raise NetworkXError("Personalization dictionary must have a value for every node. Missing %s" % missing)
         p = scipy.array([per_dict[n] for n in nodelist], dtype=float)
         p = p / p.sum()
 
@@ -218,10 +217,13 @@ class DiffusionProfiles(object):
 
         return None
 
-    def process_saved_diffusion_profiles(self) -> None:
+    def process_saved_diffusion_profiles(self, msi: Generic) -> None:
         """Function reads in  saved numpy arrays for all nodes in the msi graph and appends them to a numpy matrix. The
         resulting matrix is indexed by the nodelist ordering. The node list and resulting numpy matrix are saved as
         separate files and pickled.
+
+        Args:
+            msi: A MSI object containing a NetworkX graph and associated metadata.
 
         Returns:
              None.
@@ -234,7 +236,7 @@ class DiffusionProfiles(object):
             node_diffusion_profile = np.load(f)
             # append node diffusion profile to numpy matrix
             diffusion_profile_matrix.append(node_diffusion_profile)
-            # os.remove(f)  # delete single diffusion profile files
+            os.remove(f)  # delete single diffusion profile files
 
         # create dictionary to store node list and diffusion profile matrix
         diffusion_profile_matrix = np.asarray(diffusion_profile_matrix)
@@ -244,7 +246,7 @@ class DiffusionProfiles(object):
         file_name2 = os.path.join(self.save_load_file_path, 'msi_diffusion_profile_matrix_index_ids.npy')
         node_idx_dict = {x[0]: x[1] for x in enumerate(msi.nodelist)}
         pickle.dump(node_idx_dict, open(file_name2, "wb"), protocol=pickle.HIGHEST_PROTOCOL)
-        print("Saving diffusion profile matrix ({}) and node index dictionary ({})".format(fiel_name1, file_name2))
+        print("Saving diffusion profile matrix ({}) and node index dictionary ({})".format(file_name1, file_name2))
 
         return None
 
@@ -380,7 +382,7 @@ class DiffusionProfiles(object):
 
         # STEP 5: process diffusion profiles to create a single matrix containing all diffusion profiles
         print("---> Converting Node's Diffusion Profiles into a Single Diffusion Profile Matrix")
-        self.process_saved_diffusion_profiles()
+        self.process_saved_diffusion_profiles(msi)
 
         # complete process and output runtime
         end_time = datetime.now()

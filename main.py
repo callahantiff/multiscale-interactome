@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # import needed libraries
+import multiprocessing
+
 from msi.msi import *
 from diff_prof.diffusion_profiles import *
 
